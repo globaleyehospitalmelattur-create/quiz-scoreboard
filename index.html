@@ -40,7 +40,7 @@
             border-top: 6px solid var(--neon-green);
         }
 
-        /* EYECON 4.0 Poster Header & Optometry Eye Logo Styles */
+        /* EYECON 4.0 Poster Header Styles */
         .brand-header {
             text-align: center;
             margin-bottom: 30px;
@@ -183,45 +183,47 @@
             transition: background-color 0.5s ease;
         }
 
-        /* Optometry Eye Blinking Animation for Loading */
+        /* New Optometry Pulse / Laser Scan Loading Animation */
         .loading-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            margin: 35px 0;
+            margin: 40px 0;
             gap: 15px;
         }
 
-        .eye-loader {
-            width: 65px;
-            height: 35px;
-            border: 4px solid var(--primary-blue);
-            border-radius: 50% / 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            background: #eff6ff;
-            animation: blinkEye 1.2s infinite ease-in-out;
-        }
-
-        .eye-pupil {
-            width: 18px;
-            height: 18px;
-            background-color: var(--primary-blue);
+        .optom-scanner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid var(--primary-blue);
+            border-bottom: 4px solid var(--neon-green);
             border-radius: 50%;
-            animation: movePupil 1.2s infinite ease-in-out;
+            animation: scanSpin 1s linear infinite;
+            position: relative;
         }
 
-        @keyframes blinkEye {
-            0%, 100% { transform: scaleY(1); }
-            50% { transform: scaleY(0.2); }
+        .optom-scanner::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 3px dashed var(--primary-blue);
+            border-radius: 50%;
+            animation: scanSpinReverse 2s linear infinite;
         }
 
-        @keyframes movePupil {
-            0%, 100% { transform: translateX(-6px); }
-            50% { transform: translateX(6px); }
+        @keyframes scanSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes scanSpinReverse {
+            0% { transform: rotate(360deg); }
+            100% { transform: rotate(0deg); }
         }
 
         .loading-text {
@@ -235,7 +237,6 @@
 <body>
 
 <div class="container">
-    <!-- Official Conference Header with Optometry Eye Badge -->
     <div class="brand-header">
         <div class="optometry-logo-badge">
             <span>👁️ VTRUST • ASCO • OPTO</span>
@@ -245,12 +246,10 @@
         <div class="location">📍 Kozhikode, Kerala</div>
     </div>
     
-    <!-- Custom Optometry Eye Blinking Loading Animation -->
+    <!-- New Optometry Loading Animation -->
     <div id="status" class="loading-container">
-        <div class="eye-loader">
-            <div class="eye-pupil"></div>
-        </div>
-        <div class="loading-text">ഡാറ്റ ലോഡ് ചെയ്യുന്നു...</div>
+        <div class="optom-scanner"></div>
+        <div class="loading-text">Data load cheyyunnu...</div>
     </div>
 
     <div class="table-responsive">
@@ -292,7 +291,7 @@
             console.error("Error loading sheet:", error);
             sheetData = [];
             renderTable();
-            document.getElementById("status").innerHTML = '<div style="color: #ef4444;">ഡാറ്റ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു. URL പരിശോധിക്കുക!</div>';
+            document.getElementById("status").innerHTML = '<div style="color: #ef4444;">Data load cheyyunnathil tholvi sambhavichu. URL പരിശോധിക്കുക!</div>';
         }
     }
 
