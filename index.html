@@ -80,7 +80,6 @@
             background-color: #ffffff;
         }
 
-        /* Row-ukalude default animation */
         tbody tr {
             opacity: 0;
             transform: translateY(20px);
@@ -125,7 +124,6 @@
             padding-left: 20px;
         }
 
-        /* 1st rank kittiya avasanathe winner row-kku special highlight */
         .winner-row td {
             background-color: #fef08a !important;
             transition: background-color 0.5s ease;
@@ -185,7 +183,7 @@
                 </tr>
             </thead>
             <tbody id="scoreTableBody">
-                <!-- JavaScript vazhi ivide rows varum -->
+                <!-- Data ivide load aakum -->
             </tbody>
         </table>
     </div>
@@ -200,13 +198,19 @@
     async function loadSheetData() {
         try {
             let response = await fetch(appScriptUrl);
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
             sheetData = await response.json();
+            console.log("Loaded Data:", sheetData); // Console-il data varunundo ennu nokkan
             renderTable();
             document.getElementById("status").style.display = "none";
         } catch (error) {
             console.error("Error loading sheet:", error);
+            // Error vannalum table blank aakathirikkan default data vechu render cheyyum
+            sheetData = [];
             renderTable();
-            document.getElementById("status").innerHTML = '<div style="color: #ef4444;">Data load cheyyunnathil tholvi sambhavichu.</div>';
+            document.getElementById("status").innerHTML = '<div style="color: #ef4444;">Data load cheyyunnathil tholvi sambhavichu. Script URL verify cheyyuka!</div>';
         }
     }
 
@@ -237,25 +241,22 @@
                 rounds: rounds,
                 total: total,
                 hasValue: hasValue,
-                isAllFiveRoundsFilled: (filledRoundsCount === 5) // 5 roundilum data undo ennu check cheyyunnu
+                isAllFiveRoundsFilled: (filledRoundsCount === 5)
             };
         });
 
-        // Sorting based on points
         teamsArray.sort((a, b) => {
             let valA = a.hasValue ? a.total : 999999;
             let valB = b.hasValue ? b.total : 999999;
             return valA - valB;
         });
 
-        // Check whether ALL teams have all 5 rounds filled
-        let allTeamsHaveFiveRounds = teamsArray.every(team => team.isAllFiveRoundsFilled);
+        let allTeamsHaveFiveRounds = teamsArray.length > 0 && teamsArray.every(team => team.isAllFiveRoundsFilled);
 
         teamsArray.forEach((teamObj, index) => {
             let row = document.createElement("tr");
             
             let delayTime = 0;
-            // 5 roundilum data undengil mathram 10s delay (10s, 20s angane), allenkil delay 0 (pettannu varum)
             if (allTeamsHaveFiveRounds) {
                 delayTime = index * 10;
             } else {
