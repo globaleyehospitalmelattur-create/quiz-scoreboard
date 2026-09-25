@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Score Board - Live Sorted</title>
+    <title>Quiz Score Board - Live Sorted with Icons</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -73,7 +73,7 @@
 <body>
 
 <div class="container">
-    <h2>🏆 Quiz Score Board (Sorted: Lowest to Highest Total)</h2>
+    <h2>🏆 Quiz Score Board (Sorted with Medals)</h2>
     <div id="status" class="loading">Google Sheet-ൽ നിന്ന് ഡാറ്റ ലോഡ് ചെയ്യുന്നു...</div>
     <table>
         <thead>
@@ -116,7 +116,6 @@
         const tableBody = document.getElementById("scoreTableBody");
         tableBody.innerHTML = "";
 
-        // എല്ലാ ടീമുകളുടെയും ഡാറ്റയും ടോട്ടലും കണക്കുകൂട്ടുക
         let teamsArray = teamNames.map((team, index) => {
             let rounds = [];
             let total = 0;
@@ -124,7 +123,6 @@
 
             for (let i = 1; i <= 5; i++) {
                 let val = "";
-                // ഷീറ്റിൽ നിന്ന് ഡാറ്റ എടുക്കുക (index + 1 because row 0 is header)
                 if (sheetData[index + 1] && sheetData[index + 1][i] !== undefined && sheetData[index + 1][i] !== "") {
                     val = sheetData[index + 1][i];
                     total += parseFloat(val) || 0;
@@ -142,21 +140,33 @@
             };
         });
 
-        // സോർട്ട് ചെയ്യുക: കുറഞ്ഞ പോയിന്റ് ഉള്ളവർ ആദ്യം, കൂടുതൽ ഉള്ളവർ ഒടുവിൽ (Ascending Order)
-        // മാർക്ക് എന്റർ ചെയ്യാത്തവരെ (hasValue false) ഏറ്റവും താഴെയായി നിർത്താൻ ടോട്ടൽ വലിയൊരു നമ്പരായി കണക്കാക്കാം
+        // സോർട്ട് ചെയ്യുക: കുറഞ്ഞ പോയിന്റ് ആദ്യം, കൂടുതൽ പോയിന്റ് ഉള്ളവർ ഒടുവിൽ
         teamsArray.sort((a, b) => {
             let valA = a.hasValue ? a.total : 999999;
             let valB = b.hasValue ? b.total : 999999;
             return valA - valB;
         });
 
-        // ടേബിളിലേക്ക് റോകൾ ചേര്‍ക്കുക
+        // ടോട്ടൽ മാർക്ക് ഉള്ള ടീമുകളെ മാത്രം കണക്കാക്കി മെഡൽ നൽകാൻ (ഏറ്റവും ഒടുവിലുള്ളവർക്ക് 1st, 2nd, 3rd)
+        let activeTeams = teamsArray.filter(t => t.hasValue);
+        let len = activeTeams.length;
+
         teamsArray.forEach((teamObj) => {
             let row = document.createElement("tr");
             
             let teamCell = document.createElement("td");
             teamCell.className = "team-name";
-            teamCell.innerText = teamObj.name;
+
+            // മെഡൽ ഐക്കണുകൾ ചേർക്കാനുള്ള ഭാഗം (ഏറ്റവും കൂടുതൽ പോയിന്റ് ഉള്ളവർക്ക് താഴെ നിന്ന് മുകളിലേക്ക്)
+            let medalIcon = "";
+            if (teamObj.hasValue) {
+                let rankFromBottom = teamsArray.length - teamsArray.indexOf(teamObj);
+                if (rankFromBottom === 1) medalIcon = " 🥇";
+                else if (rankFromBottom === 2) medalIcon = " 🥈";
+                else if (rankFromBottom === 3) medalIcon = " 🥉";
+            }
+
+            teamCell.innerText = teamObj.name + medalIcon;
             row.appendChild(teamCell);
 
             for (let i = 0; i < 5; i++) {
@@ -181,9 +191,7 @@
         });
     }
 
-    // മാനുവലായി ഇൻപുട്ട് മാറ്റുമ്പോൾ ലൈവ് ആയി ടോട്ടൽ കാൽക്കുലേറ്റ് ചെയ്ത് സോർട്ട് ചെയ്യാനും
     function updateTotalsAndSort() {
-        // ഇൻപുട്ട് മാറ്റങ്ങൾ ഷീറ്റ് ഡാറ്റയിലേക്ക് അപ്ഡേറ്റ് ചെയ്യുക
         teamNames.forEach((_, index) => {
             if (!sheetData[index + 1]) sheetData[index + 1] = [teamNames[index]];
             for (let i = 1; i <= 5; i++) {
