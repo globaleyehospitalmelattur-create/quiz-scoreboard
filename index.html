@@ -237,7 +237,7 @@
                 rounds: rounds,
                 total: total,
                 hasValue: hasValue,
-                filledRoundsCount: filledRoundsCount
+                isAllFiveRoundsFilled: (filledRoundsCount === 5) // 5 roundilum data undo ennu check cheyyunnu
             };
         });
 
@@ -248,18 +248,18 @@
             return valA - valB;
         });
 
+        // Check whether ALL teams have all 5 rounds filled
+        let allTeamsHaveFiveRounds = teamsArray.every(team => team.isAllFiveRoundsFilled);
+
         teamsArray.forEach((teamObj, index) => {
             let row = document.createElement("tr");
             
             let delayTime = 0;
-            // 1st round mathram aanengil (filledRoundsCount == 1), delay 0 aayirikkum (pettannu varum).
-            // 4 rounds-il data undengil, angane ullavarkkum mattullavarkkum 10s delay undakum.
-            if (teamObj.filledRoundsCount > 1 || teamObj.filledRoundsCount === 4 || index > 0) {
-                if (teamObj.filledRoundsCount === 1) {
-                    delayTime = 0; // Delay illathe pettannu varum
-                } else {
-                    delayTime = index * 10; // 10 seconds delay
-                }
+            // 5 roundilum data undengil mathram 10s delay (10s, 20s angane), allenkil delay 0 (pettannu varum)
+            if (allTeamsHaveFiveRounds) {
+                delayTime = index * 10;
+            } else {
+                delayTime = 0; 
             }
             
             row.style.animationDelay = `${delayTime}s`;
