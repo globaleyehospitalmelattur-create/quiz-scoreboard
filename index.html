@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Score Board</title>
+    <title>Quiz Animated Score Board</title>
     <style>
         :root {
             --primary-color: #4f46e5;
@@ -78,6 +78,27 @@
             background-color: #ffffff;
         }
 
+        /* റോകൾ ഒന്നിന് പിറകെ ഒന്നായി ആനിമേഷൻ വഴി വരാൻ (Staggered Animation) */
+        tbody tr {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        /* ഓരോ റോയ്ക്കും വരുന്ന ആനിമേഷൻ ഡിലേ (അവസാനത്തെ ടീം ഏറ്റവും ഒടുവിൽ വരാൻ) */
+        tbody tr:nth-child(1) { animation-delay: 0.2s; }
+        tbody tr:nth-child(2) { animation-delay: 0.4s; }
+        tbody tr:nth-child(3) { animation-delay: 0.6s; }
+        tbody tr:nth-child(4) { animation-delay: 0.8s; }
+        tbody tr:nth-child(5) { animation-delay: 1.0s; }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         input[type="number"] {
             width: 65px;
             padding: 8px;
@@ -143,9 +164,8 @@
 <body>
 
 <div class="container">
-    <h2>🏆 Quiz Live Score Board</h2>
+    <h2>🏆 Quiz Live Animated Score Board</h2>
     
-    <!-- Loading Animation Container -->
     <div id="status" class="loading-container">
         <div class="spinner"></div>
         <div class="loading-text">ഡാറ്റ ലോഡ് ചെയ്യുന്നു...</div>
@@ -165,7 +185,7 @@
                 </tr>
             </thead>
             <tbody id="scoreTableBody">
-                <!-- JavaScript വഴി ഡാറ്റ ഇവിടെ ലോഡ് ചെയ്യപ്പെടും -->
+                <!-- JavaScript വഴി ഡാറ്റ ഇവിടെ ആനിമേഷനോടെ ലോഡ് ചെയ്യപ്പെടും -->
             </tbody>
         </table>
     </div>
@@ -182,7 +202,6 @@
             let response = await fetch(appScriptUrl);
             sheetData = await response.json();
             renderTable();
-            // ഡാറ്റ ലോഡ് ആയിക്കഴിഞ്ഞാൽ ആനിമേഷൻ ഹൈഡ് ചെയ്യും
             document.getElementById("status").style.display = "none";
         } catch (error) {
             console.error("Error loading sheet:", error);
@@ -219,23 +238,26 @@
             };
         });
 
-        // കുറഞ്ഞ പോയിന്റ് ഉള്ളവർ മുകളിലും, കൂടുതൽ പോയിന്റ് ഉള്ളവർ (1st rank) താഴെയും വരുന്ന രീതിയിൽ സോർട്ട് ചെയ്യുന്നു
+        // കുറഞ്ഞ പോയിന്റ് ഉള്ളവർ മുകളിലും, കൂടുതൽ പോയിന്റ് ഉള്ളവർ (1st rank) ഏറ്റവും അവസാനം (താഴെയും) വരുന്ന രീതിയിൽ സോർട്ട് ചെയ്യുന്നു
         teamsArray.sort((a, b) => {
             let valA = a.hasValue ? a.total : 999999;
             let valB = b.hasValue ? b.total : 999999;
             return valA - valB;
         });
 
-        teamsArray.forEach((teamObj) => {
+        teamsArray.forEach((teamObj, index) => {
             let row = document.createElement("tr");
             
-            // Team Name Cell (ഇടത്തുനിന്ന് വലത്തേക്ക്)
+            // ഏറ്റവും കൂടുതൽ പോയിന്റ് ഉള്ള ടീം (അവസാന റോ) വരുമ്പോൾ ആനിമേഷന്റെ വേഗത ക്രമീകരിക്കുന്നു
+            row.style.animationDelay = `${(index + 1) * 0.25}s`;
+
+            // Team Name Cell
             let teamCell = document.createElement("td");
             teamCell.className = "team-name";
             teamCell.innerText = teamObj.name;
             row.appendChild(teamCell);
 
-            // Rounds 1 to 5 Inputs (മുകളിൽ നിന്ന് താഴേക്ക് കോളങ്ങൾ)
+            // Rounds 1 to 5 Inputs
             for (let i = 0; i < 5; i++) {
                 let td = document.createElement("td");
                 let input = document.createElement("input");
