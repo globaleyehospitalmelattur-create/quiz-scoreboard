@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Score Board - Google Sheet Sync</title>
+    <title>Quiz Score Board - Live Sorted</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -73,7 +73,7 @@
 <body>
 
 <div class="container">
-    <h2>🏆 Quiz Score Board (Live Sync)</h2>
+    <h2>🏆 Quiz Score Board (Sorted: Lowest to Highest Total)</h2>
     <div id="status" class="loading">Google Sheet-ൽ നിന്ന് ഡാറ്റ ലോഡ് ചെയ്യുന്നു...</div>
     <table>
         <thead>
@@ -94,92 +94,106 @@
 </div>
 
 <script>
-    const teams = ["Team A", "Team B", "Team C", "Team D", "Team E"];
-    const tableBody = document.getElementById("scoreTableBody");
-
-    // നിങ്ങൾ നൽകിയ Apps Script Web App URL ഇവിടെ ചേർത്തിരിക്കുന്നു
+    const teamNames = ["Team A", "Team B", "Team C", "Team D", "Team E"];
     const appScriptUrl = "https://script.google.com/macros/s/AKfycbyUFELQsY3E2GPkFY62aV2q2y2z6w2kvryHuibo2PMljwEVLaEcnHHjpwWMxeSgYkeVeA/exec"; 
 
-    function createTable(data = []) {
-        tableBody.innerHTML = "";
-        teams.forEach((team, index) => {
-            let row = document.createElement("tr");
-            
-            let teamCell = document.createElement("td");
-            teamCell.className = "team-name";
-            teamCell.innerText = team;
-            row.appendChild(teamCell);
+    let sheetData = [];
 
-            let rowSum = 0;
-            let hasValue = false;
-
-            for (let i = 1; i <= 5; i++) {
-                let td = document.createElement("td");
-                let input = document.createElement("input");
-                input.type = "number";
-                input.min = "0";
-                input.id = `t${index}_r${i}`;
-                
-                // ഗൂഗിൾ ഷീറ്റിൽ നിന്ന് ഡാറ്റ വന്നിട്ടുണ്ടെങ്കിൽ അത് ചേർക്കുക (0 കാണിക്കില്ല, ഒഴിഞ്ഞുകിടക്കും)
-                if (data[index + 1] && data[index + 1][i] !== undefined && data[index + 1][i] !== "") {
-                    let val = data[index + 1][i];
-                    input.value = val;
-                    rowSum += parseFloat(val) || 0;
-                    hasValue = true;
-                } else {
-                    input.value = ""; 
-                }
-
-                input.oninput = calculateTotals; 
-                td.appendChild(input);
-                row.appendChild(td);
-            }
-
-            // ടോട്ടൽ മാർക്ക് കാണിക്കുന്ന സെൽ
-            let totalTd = document.createElement("td");
-            totalTd.className = "total-mark";
-            totalTd.id = `total_${index}`;
-            totalTd.innerText = hasValue ? rowSum : "";
-            row.appendChild(totalTd);
-
-            tableBody.appendChild(row);
-        });
-        document.getElementById("status").innerText = "ഡാറ്റ വിജയകരമായി ലോഡ് ചെയ്തു!";
-    }
-
-    // Apps Script വഴി ഡാറ്റ ഫെച്ച് ചെയ്യുന്ന ഫംഗ്ഷൻ
     async function loadSheetData() {
         try {
             let response = await fetch(appScriptUrl);
-            let rows = await response.json();
-            createTable(rows);
+            sheetData = await response.json();
+            renderTable();
+            document.getElementById("status").innerText = "ഡാറ്റ വിജയകരമായി ലോഡ് ചെയ്തു!";
         } catch (error) {
             console.error("Error loading sheet:", error);
-            createTable();
+            renderTable();
             document.getElementById("status").innerText = "ഡാറ്റ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.";
         }
     }
 
-    // മാർക്കുകൾ മാറ്റുമ്പോൾ ടോട്ടൽ ഓട്ടോമാറ്റായി കണക്കുകൂട്ടാൻ
-    function calculateTotals() {
-        teams.forEach((_, index) => {
-            let sum = 0;
+    function renderTable() {
+        const tableBody = document.getElementById("scoreTableBody");
+        tableBody.innerHTML = "";
+
+        // എല്ലാ ടീമുകളുടെയും ഡാറ്റയും ടോട്ടലും കണക്കുകൂട്ടുക
+        let teamsArray = teamNames.map((team, index) => {
+            let rounds = [];
+            let total = 0;
             let hasValue = false;
-            
+
             for (let i = 1; i <= 5; i++) {
-                let valStr = document.getElementById(`t${index}_r${i}`).value;
-                if (valStr !== "") {
-                    let val = parseFloat(valStr) || 0;
-                    sum += val;
+                let val = "";
+                // ഷീറ്റിൽ നിന്ന് ഡാറ്റ എടുക്കുക (index + 1 because row 0 is header)
+                if (sheetData[index + 1] && sheetData[index + 1][i] !== undefined && sheetData[index + 1][i] !== "") {
+                    val = sheetData[index + 1][i];
+                    total += parseFloat(val) || 0;
                     hasValue = true;
                 }
+                rounds.push(val);
             }
+
+            return {
+                name: team,
+                originalIndex: index,
+                rounds: rounds,
+                total: total,
+                hasValue: hasValue
+            };
+        });
+
+        // സോർട്ട് ചെയ്യുക: കുറഞ്ഞ പോയിന്റ് ഉള്ളവർ ആദ്യം, കൂടുതൽ ഉള്ളവർ ഒടുവിൽ (Ascending Order)
+        // മാർക്ക് എന്റർ ചെയ്യാത്തവരെ (hasValue false) ഏറ്റവും താഴെയായി നിർത്താൻ ടോട്ടൽ വലിയൊരു നമ്പരായി കണക്കാക്കാം
+        teamsArray.sort((a, b) => {
+            let valA = a.hasValue ? a.total : 999999;
+            let valB = b.hasValue ? b.total : 999999;
+            return valA - valB;
+        });
+
+        // ടേബിളിലേക്ക് റോകൾ ചേര്‍ക്കുക
+        teamsArray.forEach((teamObj) => {
+            let row = document.createElement("tr");
             
-            document.getElementById(`total_${index}`).innerText = hasValue ? sum : "";
+            let teamCell = document.createElement("td");
+            teamCell.className = "team-name";
+            teamCell.innerText = teamObj.name;
+            row.appendChild(teamCell);
+
+            for (let i = 0; i < 5; i++) {
+                let td = document.createElement("td");
+                let input = document.createElement("input");
+                input.type = "number";
+                input.min = "0";
+                input.id = `t${teamObj.originalIndex}_r${i + 1}`;
+                input.value = teamObj.rounds[i];
+                input.oninput = updateTotalsAndSort; 
+                td.appendChild(input);
+                row.appendChild(td);
+            }
+
+            let totalTd = document.createElement("td");
+            totalTd.className = "total-mark";
+            totalTd.id = `total_${teamObj.originalIndex}`;
+            totalTd.innerText = teamObj.hasValue ? teamObj.total : "";
+            row.appendChild(totalTd);
+
+            tableBody.appendChild(row);
         });
     }
 
-    // പേജ് ലോഡ് ചെയ്യുമ്പോൾ ഡാറ്റ ഫെച്ച് ചെയ്യുക
+    // മാനുവലായി ഇൻപുട്ട് മാറ്റുമ്പോൾ ലൈവ് ആയി ടോട്ടൽ കാൽക്കുലേറ്റ് ചെയ്ത് സോർട്ട് ചെയ്യാനും
+    function updateTotalsAndSort() {
+        // ഇൻപുട്ട് മാറ്റങ്ങൾ ഷീറ്റ് ഡാറ്റയിലേക്ക് അപ്ഡേറ്റ് ചെയ്യുക
+        teamNames.forEach((_, index) => {
+            if (!sheetData[index + 1]) sheetData[index + 1] = [teamNames[index]];
+            for (let i = 1; i <= 5; i++) {
+                let val = document.getElementById(`t${index}_r${i}`).value;
+                sheetData[index + 1][i] = val;
+            }
+        });
+        renderTable();
+    }
+
     loadSheetData();
 </script>
 
