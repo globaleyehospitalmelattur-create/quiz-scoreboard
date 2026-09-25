@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Score Board - Modern UI</title>
+    <title>Quiz Score Board</title>
     <style>
         :root {
             --primary-color: #4f46e5;
-            --secondary-color: #818cf8;
             --background: #f8fafc;
             --card-bg: #ffffff;
             --text-main: #1e293b;
@@ -41,7 +40,6 @@
             margin-bottom: 25px;
             font-size: 26px;
             font-weight: 700;
-            letter-spacing: 0.5px;
         }
 
         .table-responsive {
@@ -70,7 +68,6 @@
             font-weight: 600;
             font-size: 15px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         tr:nth-child(even) td {
@@ -104,32 +101,12 @@
             font-size: 20px;
         }
 
-        .team-cell {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 12px;
-            padding-left: 20px;
-        }
-
         .team-name {
             font-weight: 700;
             color: #334155;
             font-size: 17px;
-        }
-
-        .badge-icon {
-            width: 38px;
-            height: 38px;
-            object-fit: contain;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-            animation: bounceIn 0.5s ease-in-out;
-        }
-
-        @keyframes bounceIn {
-            0% { transform: scale(0); }
-            70% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+            text-align: left;
+            padding-left: 20px;
         }
 
         .loading {
@@ -145,7 +122,7 @@
 
 <div class="container">
     <h2>🏆 Quiz Live Score Board</h2>
-    <div id="status" class="loading">Google Sheet-il ninnu data load cheyyunnu...</div>
+    <div id="status" class="loading">Google Sheet-ൽ നിന്ന് ഡാറ്റ ലോഡ് ചെയ്യുന്നു...</div>
     
     <div class="table-responsive">
         <table>
@@ -161,7 +138,7 @@
                 </tr>
             </thead>
             <tbody id="scoreTableBody">
-                <!-- JavaScript vazhi data ivide varum -->
+                <!-- JavaScript വഴി ഡാറ്റ ഇവിടെ ലോഡ് ചെയ്യപ്പെടും -->
             </tbody>
         </table>
     </div>
@@ -171,13 +148,6 @@
     const teamNames = ["Team A", "Team B", "Team C", "Team D", "Team E"];
     const appScriptUrl = "https://script.google.com/macros/s/AKfycbyUFELQsY3E2GPkFY62aV2q2y2z6w2kvryHuibo2PMljwEVLaEcnHHjpwWMxeSgYkeVeA/exec"; 
 
-    // Reliable aaya high-resolution badge/medal icons (SVG/PNG)
-    const badges = {
-        1: "https://img.icons8.com/color/96/1st-place-medal.png", 
-        2: "https://img.icons8.com/color/96/2nd-place-medal.png", 
-        3: "https://img.icons8.com/color/96/3rd-place-medal.png"  
-    };
-
     let sheetData = [];
 
     async function loadSheetData() {
@@ -185,11 +155,11 @@
             let response = await fetch(appScriptUrl);
             sheetData = await response.json();
             renderTable();
-            document.getElementById("status").innerText = "Data vijayakaramayi load cheythu!";
+            document.getElementById("status").innerText = "ഡാറ്റ വിജയകരമായി ലോഡ് ചെയ്തു!";
         } catch (error) {
             console.error("Error loading sheet:", error);
             renderTable();
-            document.getElementById("status").innerText = "Data load cheyyunnathil tholvi sambhavichu.";
+            document.getElementById("status").innerText = "ഡാറ്റ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.";
         }
     }
 
@@ -221,7 +191,7 @@
             };
         });
 
-        // Kuranja point ullavar mukalilum, kooduthal point ulla 1st rank thazheyum varunna reethiyil sort cheyyunnu
+        // കുറഞ്ഞ പോയിന്റ് ഉള്ളവർ മുകളിലും, കൂടുതൽ പോയിന്റ് ഉള്ളവർ (1st rank) താഴെയും വരുന്ന രീതിയിൽ സോർട്ട് ചെയ്യുന്നു
         teamsArray.sort((a, b) => {
             let valA = a.hasValue ? a.total : 999999;
             let valB = b.hasValue ? b.total : 999999;
@@ -231,32 +201,13 @@
         teamsArray.forEach((teamObj) => {
             let row = document.createElement("tr");
             
-            // Team Name and Badge Cell (Idathu ninnu valathekkulla layout)
+            // Team Name Cell (ഇടത്തുനിന്ന് വലത്തേക്ക്)
             let teamCell = document.createElement("td");
-            let teamDiv = document.createElement("div");
-            teamDiv.className = "team-cell";
-
-            let nameSpan = document.createElement("span");
-            nameSpan.className = "team-name";
-            nameSpan.innerText = teamObj.name;
-            teamDiv.appendChild(nameSpan);
-
-            // Rank badges add cheyyunnu (Thazhe ninnu mukalilekkulla order-il 1st, 2nd, 3rd)
-            if (teamObj.hasValue) {
-                let rankFromBottom = teamsArray.length - teamsArray.indexOf(teamObj);
-                if (rankFromBottom >= 1 && rankFromBottom <= 3) {
-                    let badgeImg = document.createElement("img");
-                    badgeImg.src = badges[rankFromBottom];
-                    badgeImg.className = "badge-icon";
-                    badgeImg.alt = `${rankFromBottom} Place`;
-                    teamDiv.appendChild(badgeImg);
-                }
-            }
-
-            teamCell.appendChild(teamDiv);
+            teamCell.className = "team-name";
+            teamCell.innerText = teamObj.name;
             row.appendChild(teamCell);
 
-            // Rounds 1 to 5 Inputs (Mukalil ninnu thazhekkulla columns-il roundukal)
+            // Rounds 1 to 5 Inputs (മുകളിൽ നിന്ന് താഴേക്ക് കോളങ്ങൾ)
             for (let i = 0; i < 5; i++) {
                 let td = document.createElement("td");
                 let input = document.createElement("input");
