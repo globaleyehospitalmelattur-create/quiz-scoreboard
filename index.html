@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eyecon 4.0 - Quiz Score Board</title>
+    <title>EYECON 4.0 - National Optometry Conference, Calicut</title>
     <!-- Confetti effect-inu vendulla library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --primary-bg: #f8fafc;
+            --primary-blue: #0047ff;
+            --neon-green: #84cc16;
+            --bg-dark: #0f172a;
             --card-bg: #ffffff;
-            --accent-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             --text-main: #1e293b;
             --text-muted: #64748b;
             --border-color: #e2e8f0;
@@ -19,7 +20,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--primary-bg);
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
             color: var(--text-main);
             margin: 0;
             padding: 20px;
@@ -33,13 +34,14 @@
             background: var(--card-bg);
             padding: 40px;
             border-radius: 24px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
             width: 100%;
             max-width: 950px;
             box-sizing: border-box;
+            border-top: 6px solid var(--neon-green);
         }
 
-        /* Eyecon 4.0 Brand Logo Header Styles */
+        /* EYECON 4.0 Official Poster Color Theme Header */
         .brand-header {
             text-align: center;
             margin-bottom: 30px;
@@ -49,15 +51,15 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 60px;
-            height: 60px;
-            background: var(--accent-gradient);
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--primary-blue), #2563eb);
             color: white;
-            font-size: 28px;
-            font-weight: 800;
-            border-radius: 16px;
-            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+            font-size: 32px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 71, 255, 0.3);
             margin-bottom: 12px;
+            border: 2px solid var(--neon-green);
         }
 
         .brand-header h1 {
@@ -69,18 +71,25 @@
         }
 
         .brand-header h1 span {
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--primary-blue);
         }
 
-        .brand-header p {
-            margin: 5px 0 0 0;
-            color: var(--text-muted);
+        .sub-title {
+            margin: 6px 0 0 0;
+            color: #16a34a;
             font-size: 15px;
-            font-weight: 500;
+            font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .location {
+            margin: 4px 0 0 0;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 700;
             letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
         .table-responsive {
@@ -102,7 +111,7 @@
         }
 
         th {
-            background: var(--accent-gradient);
+            background: linear-gradient(135deg, var(--primary-blue), #1d4ed8);
             color: white;
             font-weight: 600;
             font-size: 15px;
@@ -147,13 +156,13 @@
 
         input[type="number"]:focus {
             background-color: #ffffff;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(0, 71, 255, 0.15);
         }
 
         .total-mark {
             font-weight: 800;
-            color: #059669;
+            color: #16a34a;
             font-size: 20px;
         }
 
@@ -183,7 +192,7 @@
             width: 45px;
             height: 45px;
             border: 4px solid var(--border-color);
-            border-top: 4px solid #4f46e5;
+            border-top: 4px solid var(--primary-blue);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
@@ -203,16 +212,17 @@
 <body>
 
 <div class="container">
-    <!-- Eyecon 4.0 Brand Header & Logo -->
+    <!-- EYECON 4.0 Calicut Conference Official Header -->
     <div class="brand-header">
         <div class="brand-logo">👁️</div>
         <h1>EYECON <span>4.0</span></h1>
-        <p>Live Quiz Score Board</p>
+        <div class="sub-title">National Optometry Conference</div>
+        <div class="location">📍 Kozhikode, Kerala</div>
     </div>
     
     <div id="status" class="loading-container">
         <div class="spinner"></div>
-        <div class="loading-text">Data load cheyyunnu...</div>
+        <div class="loading-text">ഡാറ്റ ലോഡ് ചെയ്യുന്നു...</div>
     </div>
 
     <div class="table-responsive">
@@ -254,7 +264,7 @@
             console.error("Error loading sheet:", error);
             sheetData = [];
             renderTable();
-            document.getElementById("status").innerHTML = '<div style="color: #ef4444;">Data load cheyyunnathil tholvi sambhavichu. URL check cheyyuka!</div>';
+            document.getElementById("status").innerHTML = '<div style="color: #ef4444;">ഡാറ്റ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു. URL പരിശോധിക്കുക!</div>';
         }
     }
 
