@@ -80,11 +80,11 @@
             background-color: #ffffff;
         }
 
-        /* Oru row-muthal mattoru row varare 15s delay-um animationum */
+        /* Row-ukalude default fade-in animation */
         tbody tr {
             opacity: 0;
-            transform: translateY(30px);
-            animation: cinematicFadeIn 1s ease forwards;
+            transform: translateY(20px);
+            animation: cinematicFadeIn 0.8s ease forwards;
         }
 
         @keyframes cinematicFadeIn {
@@ -125,7 +125,7 @@
             padding-left: 20px;
         }
 
-        /* 1st rank varunna last row-kku special glowing effect */
+        /* 1st rank kittiya avasanathe winner row-kku special highlight */
         .winner-row td {
             background-color: #fef08a !important;
             transition: background-color 0.5s ease;
@@ -218,6 +218,7 @@
             let rounds = [];
             let total = 0;
             let hasValue = false;
+            let filledRoundsCount = 0;
 
             for (let i = 1; i <= 5; i++) {
                 let val = "";
@@ -225,6 +226,7 @@
                     val = sheetData[index + 1][i];
                     total += parseFloat(val) || 0;
                     hasValue = true;
+                    filledRoundsCount++;
                 }
                 rounds.push(val);
             }
@@ -234,11 +236,12 @@
                 originalIndex: index,
                 rounds: rounds,
                 total: total,
-                hasValue: hasValue
+                hasValue: hasValue,
+                filledRoundsCount: filledRoundsCount
             };
         });
 
-        // Kuranja point ullavar mukalilum, kooduthal point ulla 1st rank team thazheyum (avasanam) varre sort cheyyunnu
+        // 1st Round mathram ollavaro allengil kooduthal data ulla rounds-o nokki sort cheyyunnu
         teamsArray.sort((a, b) => {
             let valA = a.hasValue ? a.total : 999999;
             let valB = b.hasValue ? b.total : 999999;
@@ -248,22 +251,25 @@
         teamsArray.forEach((teamObj, index) => {
             let row = document.createElement("tr");
             
-            // Ovvoru row-kum 15 seconds-in adutha gap/delay (0s, 15s, 30s angane step-by-step varan vechu)
-            // (Note: Pediyendathilla, pettennu kanendathond 15 seconds ennullathu 1.5s yaayi mathiyenkil anganeyum akam, pakshe user 15s choichathu kondu athu pole set cheythirikkunnu)
-            row.style.animationDelay = `${index * 15}s`;
+            // Logic: 1st round mathramullavanukku delay illathe pettennu kanikkum (0s). 
+            // Mattullavarkkum avasanathe winner-kkum 10 seconds vechulla delay (10s, 20s angane) set cheyyunnu.
+            let delayTime = 0;
+            if (teamObj.filledRoundsCount > 1 || index > 0) {
+                delayTime = index * 10; // Oru row-il ninnu mattoru row-ilekku 10s delay
+            }
+            row.style.animationDelay = `${delayTime}s`;
 
-            // Avasathe team (1st rank kittiyavar) aanengil athine winner-row aayi matramalla, padakkam pottunna (confetti) effect koodi kodukkum
             let isLastRow = (index === teamsArray.length - 1);
             if (isLastRow && teamObj.hasValue) {
                 row.className = "winner-row";
-                // 15 seconds delay kazhinju avasanathe team varumbol padakkam pottum (Confetti effect)
+                // Avasathe 1st rank team varumbol 10s delay-ude adiyil padakkam pottum (Confetti effect)
                 setTimeout(() => {
                     confetti({
                         particleCount: 150,
                         spread: 80,
                         origin: { y: 0.6 }
                     });
-                }, index * 15000);
+                }, delayTime * 1000);
             }
 
             let teamCell = document.createElement("td");
