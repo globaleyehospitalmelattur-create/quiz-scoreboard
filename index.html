@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Score Board - Google Sheet Sync</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 900px;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 6px;
+            text-align: center;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .total-mark {
+            font-weight: bold;
+            color: #28a745;
+            font-size: 18px;
+        }
+        .team-name {
+            font-weight: bold;
+            color: #0056b3;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🏆 Quiz Score Board (Live Sync)</h2>
+    <div id="status" class="loading">Google Sheet-ൽ നിന്ന് ഡാറ്റ ലോഡ് ചെയ്യുന്നു...</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Teams</th>
+                <th>Round 1</th>
+                <th>Round 2</th>
+                <th>Round 3</th>
+                <th>Round 4</th>
+                <th>Round 5</th>
+                <th>Total Mark</th>
+            </tr>
+        </thead>
+        <tbody id="scoreTableBody">
+            <!-- JavaScript വഴി ഡാറ്റ ഇവിടെ ലോഡ് ചെയ്യപ്പെടും -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const teams = ["Team A", "Team B", "Team C", "Team D", "Team E"];
+    const tableBody = document.getElementById("scoreTableBody");
+
+    // നിങ്ങൾ നൽകിയ Apps Script Web App URL ഇവിടെ ചേർത്തിരിക്കുന്നു
+    const appScriptUrl = "https://script.google.com/macros/s/AKfycbyUFELQsY3E2GPkFY62aV2q2y2z6w2kvryHuibo2PMljwEVLaEcnHHjpwWMxeSgYkeVeA/exec"; 
+
+    function createTable(data = []) {
+        tableBody.innerHTML = "";
+        teams.forEach((team, index) => {
+            let row = document.createElement("tr");
+            
+            let teamCell = document.createElement("td");
+            teamCell.className = "team-name";
+            teamCell.innerText = team;
+            row.appendChild(teamCell);
+
+            let rowSum = 0;
+            let hasValue = false;
+
+            for (let i = 1; i <= 5; i++) {
+                let td = document.createElement("td");
+                let input = document.createElement("input");
+                input.type = "number";
+                input.min = "0";
+                input.id = `t${index}_r${i}`;
+                
+                // ഗൂഗിൾ ഷീറ്റിൽ നിന്ന് ഡാറ്റ വന്നിട്ടുണ്ടെങ്കിൽ അത് ചേർക്കുക (0 കാണിക്കില്ല, ഒഴിഞ്ഞുകിടക്കും)
+                if (data[index + 1] && data[index + 1][i] !== undefined && data[index + 1][i] !== "") {
+                    let val = data[index + 1][i];
+                    input.value = val;
+                    rowSum += parseFloat(val) || 0;
+                    hasValue = true;
+                } else {
+                    input.value = ""; 
+                }
+
+                input.oninput = calculateTotals; 
+                td.appendChild(input);
+                row.appendChild(td);
+            }
+
+            // ടോട്ടൽ മാർക്ക് കാണിക്കുന്ന സെൽ
+            let totalTd = document.createElement("td");
+            totalTd.className = "total-mark";
+            totalTd.id = `total_${index}`;
+            totalTd.innerText = hasValue ? rowSum : "";
+            row.appendChild(totalTd);
+
+            tableBody.appendChild(row);
+        });
+        document.getElementById("status").innerText = "ഡാറ്റ വിജയകരമായി ലോഡ് ചെയ്തു!";
+    }
+
+    // Apps Script വഴി ഡാറ്റ ഫെച്ച് ചെയ്യുന്ന ഫംഗ്ഷൻ
+    async function loadSheetData() {
+        try {
+            let response = await fetch(appScriptUrl);
+            let rows = await response.json();
+            createTable(rows);
+        } catch (error) {
+            console.error("Error loading sheet:", error);
+            createTable();
+            document.getElementById("status").innerText = "ഡാറ്റ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.";
+        }
+    }
+
+    // മാർക്കുകൾ മാറ്റുമ്പോൾ ടോട്ടൽ ഓട്ടോമാറ്റായി കണക്കുകൂട്ടാൻ
+    function calculateTotals() {
+        teams.forEach((_, index) => {
+            let sum = 0;
+            let hasValue = false;
+            
+            for (let i = 1; i <= 5; i++) {
+                let valStr = document.getElementById(`t${index}_r${i}`).value;
+                if (valStr !== "") {
+                    let val = parseFloat(valStr) || 0;
+                    sum += val;
+                    hasValue = true;
+                }
+            }
+            
+            document.getElementById(`total_${index}`).innerText = hasValue ? sum : "";
+        });
+    }
+
+    // പേജ് ലോഡ് ചെയ്യുമ്പോൾ ഡാറ്റ ഫെച്ച് ചെയ്യുക
+    loadSheetData();
+</script>
+
+</body>
+</html>
