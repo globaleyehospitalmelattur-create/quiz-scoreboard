@@ -80,7 +80,7 @@
             background-color: #ffffff;
         }
 
-        /* Row-ukalude default fade-in animation */
+        /* Row-ukalude default animation */
         tbody tr {
             opacity: 0;
             transform: translateY(20px);
@@ -241,7 +241,7 @@
             };
         });
 
-        // 1st Round mathram ollavaro allengil kooduthal data ulla rounds-o nokki sort cheyyunnu
+        // Sorting based on points
         teamsArray.sort((a, b) => {
             let valA = a.hasValue ? a.total : 999999;
             let valB = b.hasValue ? b.total : 999999;
@@ -251,18 +251,22 @@
         teamsArray.forEach((teamObj, index) => {
             let row = document.createElement("tr");
             
-            // Logic: 1st round mathramullavanukku delay illathe pettennu kanikkum (0s). 
-            // Mattullavarkkum avasanathe winner-kkum 10 seconds vechulla delay (10s, 20s angane) set cheyyunnu.
             let delayTime = 0;
-            if (teamObj.filledRoundsCount > 1 || index > 0) {
-                delayTime = index * 10; // Oru row-il ninnu mattoru row-ilekku 10s delay
+            // 1st round mathram aanengil (filledRoundsCount == 1), delay 0 aayirikkum (pettannu varum).
+            // 4 rounds-il data undengil, angane ullavarkkum mattullavarkkum 10s delay undakum.
+            if (teamObj.filledRoundsCount > 1 || teamObj.filledRoundsCount === 4 || index > 0) {
+                if (teamObj.filledRoundsCount === 1) {
+                    delayTime = 0; // Delay illathe pettannu varum
+                } else {
+                    delayTime = index * 10; // 10 seconds delay
+                }
             }
+            
             row.style.animationDelay = `${delayTime}s`;
 
             let isLastRow = (index === teamsArray.length - 1);
             if (isLastRow && teamObj.hasValue) {
                 row.className = "winner-row";
-                // Avasathe 1st rank team varumbol 10s delay-ude adiyil padakkam pottum (Confetti effect)
                 setTimeout(() => {
                     confetti({
                         particleCount: 150,
